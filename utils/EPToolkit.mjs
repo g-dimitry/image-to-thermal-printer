@@ -1,23 +1,23 @@
 import { Buffer } from "buffer";
 import Jimp from "jimp";
 import BufferHelper from "./buffer-helper.mjs";
-import fs from 'fs';
-import { execSync } from "child_process";
+import sharp from 'sharp';
 
-export async function exchange_image() {
+export async function imageToPOSFormat(targetPath, threshold) {
   let bytes = new BufferHelper();
 
   try {
     // need to find other solution cause jimp is not working in RN
-    const raw_image = await Jimp.read('./on-light.png');
+    await sharp(targetPath)
+      .resize(62 * 40)
+      .png({compressionLevel: 0, progressive: true, })
+      .toFile("out.png");
+
+    const raw_image = await Jimp.read('./out.png');
     const img = raw_image
       .background(Jimp.cssColorToHex('rgba(255,255,255,255)'))
       .contain(256, 256)
-      .greyscale()
-      .contrast(1);
-    // 256 * 256 * 4
-
-    img.write('./out.jpg')
+      .greyscale();
 
     let hex;
 
@@ -48,7 +48,7 @@ export async function exchange_image() {
             } else {
               index = 2;
             }
-            if (Jimp.intToRGBA(hex).r <= 128) {
+            if (Jimp.intToRGBA(hex).r <= threshold) {
               dots.push('1');
             } else {
               dots.push('0');
@@ -68,14 +68,3 @@ export async function exchange_image() {
   }
   return bytes.toBuffer();
 }
-
-const main = async () => {
-  const out = await exchange_image();
-  const bla = out.toString("base64");
-  fs.writeFileSync('./out.bin', bla, { encoding: 'base64' });
-  fs.rmSync('out-images', { force: true, recursive: true });
-  fs.mkdirSync('out-images');
-  execSync('php ~/Workspace/escpos-tools/escimages.php -f ./out.bin --png -o ./out-images/');
-}
-
-main();

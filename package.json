@@ -9,7 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "buffer": "^6.0.3",
-    "jimp": "^0.16.2"
+    "buffer": "6.0.3",
+    "jimp": "0.16.2",
+    "sharp": "0.31.3"
   }
 }
